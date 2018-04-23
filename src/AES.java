@@ -1,9 +1,15 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.lang.String;
 
 
+
 public class AES {
   private static int Nb = 4;
+  static boolean debug = false;
   //<editor-fold desc="Sbox 2D Array">
   private static char[][] sBox = {{0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},
           {0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0},
@@ -91,57 +97,61 @@ public class AES {
           {0x0b,0x08,0x0d,0x0e,0x07,0x04,0x01,0x02,0x13,0x10,0x15,0x16,0x1f,0x1c,0x19,0x1a}};
   //</editor-fold>
 
-  public static void main(String[] args) {
-    char[][] test = {{0x00, 0x00, 0x00, 0x00}, {0x00, 0x00, 0x00, 0x00}, {0x00, 0x00, 0x00, 0x00}, {0x00, 0x00, 0x00, 0x00}};
-    System.out.println();
+  public static void main(String[] args) throws IOException {
+    File inputFile = new File("sample.txt");
+    FileInputStream inputStream = new FileInputStream(inputFile);
+    FileOutputStream outputStream = new FileOutputStream(new File("output.txt"));
+    int size = (int) inputFile.length();
+    
+    byte[] inputBytes = new byte[size + (16 - (size % 16))];
+    inputStream.read(inputBytes);
+
+    char[][] test;
     char[] key = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    char[][] keyGrid = keyToGrid(key);
+
+    for(int i = 0; i < inputBytes.length; i += 16) {
+      test = makeState(Arrays.copyOfRange(inputBytes, i, i + 16));
+      encrypt(key, test);
+      byte[] outputBytes = new byte[16];
+      stateToBytes(test, outputBytes);
+      for (byte outputByte : outputBytes)
+        outputStream.write((outputByte & 0xFF));
+    }
+
+    inputStream.close();
+    outputStream.close();
+  }
+
+  private static void encrypt(char[] key, char[][] test) {
+
+   char[][] keyGrid = keyToGrid(key);
     char[][] keyExpand = keyExpand(keyGrid);
     for (int k = 0; k < 10; k++) {
       addRoundKey(test, keyExpand, k);
-      System.out.println("After addRoundKey");
-      for (int i = 0; i < test[0].length; i++) {
-        for (int j = 0; j < test.length; j++) {
-          System.out.printf("%02x ", (byte) test[j][i]);
-        }
+      if (debug) {
+         System.out.println("After addRoundKey");
+         printState(test);
       }
-      System.out.println();
       subBytes(test);
-      System.out.println("After subBytes");
-      for (int i = 0; i < test[0].length; i++) {
-        for (int j = 0; j < test.length; j++) {
-          System.out.printf("%02x ", (byte) test[j][i]);
-        }
+      if (debug) {
+         System.out.println("After subBytes");
+         printState(test);
       }
       shiftRows(test);
-      System.out.println();
-      System.out.println("After shiftRows");
-      for (int i = 0; i < test[0].length; i++) {
-        for (int j = 0; j < test.length; j++) {
-          System.out.printf("%02x ", (byte) test[j][i]);
-        }
+      if (debug) {
+         System.out.println("After shiftRows");
+         printState(test);
       }
-      System.out.println();
       if (k < 9) {
         mixColumns(test);
-        System.out.println("After mixCol");
-        for (int i = 0; i < test[0].length; i++) {
-          for (int j = 0; j < test.length; j++) {
-            System.out.printf("%02x ", (byte) test[j][i]);
-          }
+        if (debug) {
+           System.out.println("After mixCol");
+           printState(test);
         }
-        System.out.println();
       }
     }
     addRoundKey(test, keyExpand, 10);
-    for (int i = 0; i < test[0].length; i++) {
-      for (int j = 0; j < test.length; j++) {
-        System.out.printf("%02x ", (byte) test[j][i]);
-      }
-    }
-    System.out.println();
-
-
+    printState(test);
   }
 
   private static void subBytes(char[][] state) {
@@ -291,25 +301,29 @@ public class AES {
     return (char) sum;
   }
 
-  static void printState(int[][] state){
-    for(int i = 0; i < 4; i++)
-      for(int j = 0; j < Nb; j++)
-        System.out.printf("%x", state[j][i]);
-    System.out.println("");
+  static void printState(char[][] test){
+      for (int i = 0; i < test[0].length; i++) {
+        for (int j = 0; j < test.length; j++) {
+          System.out.printf("%02x ", (byte) test[j][i]);
+        }
+      }
+      System.out.println();
   }
 
-  static void makeState(int[] bytes, int[][] state) {
+  static char[][] makeState(byte[] bytes) {
+    char[][] state = new char[4][Nb];
     int index = 0;
     for(int i = 0; i < 4; i++)
       for(int j = 0; j < Nb; j++)
-        state[j][i] = bytes[index++];
+        state[j][i] = (char) bytes[index++];
+    return state;
   }
 
-  static void stateToBytes(int[][] state, int[] bytes) {
+  static void stateToBytes(char[][] state, byte[] bytes) {
     int index = 0;
     for(int i = 0; i < 4; i++)
       for(int j = 0; j < Nb; j++)
-        bytes[index++] = state[j][i];
+        bytes[index++] = (byte) (state[j][i] & 0xFF);
   }
 }
 
