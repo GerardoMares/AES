@@ -191,18 +191,35 @@ public class AES {
 
 
   public static void main(String[] args) throws IOException {
-    boolean encrypt = false;
-    String file = encrypt ? "sample.txt" : "encrypted.txt";
+    boolean encrypt;
+
+    if(args.length != 2)
+      throw new java.lang.RuntimeException("Missing/invalid argument/s. Must match: '--mode $MODE'");
+
+    if(!args[0].equals("--mode"))
+        throw new java.lang.RuntimeException("Missing/invalid argument/s. Must match: '--mode $MODE'");
+
+    if(args[1].equalsIgnoreCase("encrypt")) {
+      encrypt = true;
+    } else if (args[1].equalsIgnoreCase("decrypt")){  
+      encrypt = false;
+    } else {
+      throw new java.lang.RuntimeException("Missing/invalid argument/s. Must match: '--mode $MODE'");
+    }
+
+    String file = encrypt ? "input.txt" : "encrypted.txt";
+    String outfile = encrypt ? "encrypted.txt" : "decrypted.txt";
 
     File inputFile = new File(file);
     FileInputStream inputStream = new FileInputStream(inputFile);
-    FileOutputStream outputStream = new FileOutputStream(new File("output.txt"));
+    FileOutputStream outputStream = new FileOutputStream(new File(outfile));
     int size = (int) inputFile.length();
     byte[] inputBytes = encrypt ? new byte[size + (16 - (size % 16))] : new byte[size];
     inputStream.read(inputBytes);
 
     char[][] state;
-    char[] key = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    char[] key = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     for(int i = 0; i < inputBytes.length; i += 16) {
       state = makeState(Arrays.copyOfRange(inputBytes, i, i + 16));
