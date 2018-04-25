@@ -1,14 +1,16 @@
 # AES
 Dylan Soechting and Gerardo Mares
 
-Our implementation uses the standard java compiler i.e. run "javac AES.java" if
-you want to compile the code, and then run "java AES --mode $MODE" to execute,
-where $MODE is either 'encrypt' or 'decrypt'. Place your desired input in input.txt
-and change the key with the byte array in the code byte[] key on line 221.
-Place encrypted data in encrypted.txt for it to go through the decryption process.
+Our implementation uses the standard java compiler so to compile:
 
-The output for encryption will be sent to encrypted.txt and the output for
-decryption will be sent to decrypted.txt.
+run "javac AES.java"
+
+if you want to compile the code, and then the following to execute the program:
+
+run "java AES --mode $MODE --in $INPUTFILE --out $OUTPUTFILE --key $KEYFILE"
+
+$MODE is either 'encrypt' or 'decrypt' non case sensitive and the $INPUTFILE,
+$OUTPUTFILE, $KEYFILE arguments are paths to the respective files.
 
 AES iterates through four steps: addRoundKey, subBytes, shiftRows, and mixColumns.
 Those four steps are one round of the encryption process. The amount of rounds is
