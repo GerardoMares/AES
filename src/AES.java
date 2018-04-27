@@ -228,43 +228,51 @@ public class AES {
     inputStream.read(inputBytes);
 
     char[][] state;
-    char[] key = {};
+    byte[] bytes = new byte[16];
+    char[] key;
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(keyfileName));
-      StringBuilder stringbuilder = new StringBuilder();
-      String line = null;
+      // BufferedReader reader = new BufferedReader(new FileReader(keyfileName));
+      // StringBuilder stringbuilder = new StringBuilder();
+      // String line = null;
 
-      line = reader.readLine();
-      if(line == null)
-        throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
+      FileInputStream inputStreamKey = new FileInputStream(new File(keyfileName));
+      inputStream.read(bytes);
 
-      stringbuilder.append(line);
-      String bytes = stringbuilder.toString();
-      
-      key = hexStringToByteArray(bytes);
+      String s = new String(bytes);
+      key = s.toCharArray();
+
+      // line = reader.readLine();
+      // if(line == null)
+      //   throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
+
+      // stringbuilder.append(line);
+      // String bytes = stringbuilder.toString();
+      //
+      // key = hexStringToByteArray(bytes);
       if(key.length != 16 && key.length != 32)
         throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
 
+      for(int i = 0; i < inputBytes.length; i += 16) {
+        state = makeState(Arrays.copyOfRange(inputBytes, i, i + 16));
+        if(encrypt)
+          encrypt(key, state);
+        else
+          decrypt(key, state);
 
+        byte[] outputBytes = new byte[16];
+        stateToBytes(state, outputBytes);
+
+        for (byte outputByte : outputBytes) {
+          if(outputByte != 0)
+            outputStream.write((outputByte & 0xFF));
+        }
+      }
     }
     catch (IOException e) {
       System.out.println("Error Reading The Key File.");
       e.printStackTrace();
     }
 
-    for(int i = 0; i < inputBytes.length; i += 16) {
-      state = makeState(Arrays.copyOfRange(inputBytes, i, i + 16));
-      if(encrypt)
-        encrypt(key, state);
-      else
-        decrypt(key, state);
-
-      byte[] outputBytes = new byte[16];
-      stateToBytes(state, outputBytes);
-
-      for (byte outputByte : outputBytes)
-        outputStream.write((outputByte & 0xFF));
-    }
 
     inputStream.close();
     outputStream.close();
@@ -539,17 +547,17 @@ public class AES {
       for(int j = 0; j < Nb; j++)
         bytes[index++] = (byte) (state[j][i] & 0xFF);
   }
-
-  private static char[] hexStringToByteArray(String input) {
-    String s = input.replaceAll("\\s","");
-
-    int len = s.length();
-    char[] data = new char[len / 2];
-    for (int i = 0; i < len; i += 2) {
-        data[i / 2] = (char) ((Character.digit(s.charAt(i), 16) << 4)
-                             + Character.digit(s.charAt(i+1), 16));
-    }
-
-    return data;
-  }
+  //
+  // private static char[] hexStringToByteArray(String input) {
+  //   String s = input.replaceAll("\\s","");
+  //
+  //   int len = s.length();
+  //   char[] data = new char[len / 2];
+  //   for (int i = 0; i < len; i += 2) {
+  //       data[i / 2] = (char) ((Character.digit(s.charAt(i), 16) << 4)
+  //                            + Character.digit(s.charAt(i+1), 16));
+  //   }
+  //
+  //   return data;
+  // }
 }
