@@ -240,10 +240,11 @@ public class AES {
 
       stringbuilder.append(line);
       String bytes = stringbuilder.toString();
-      if(bytes.length() != 32 && bytes.length() != 64)
+      
+      key = hexStringToByteArray(bytes);
+      if(key.length != 16 && key.length != 32)
         throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
 
-      key = hexStringToByteArray(bytes);
 
     }
     catch (IOException e) {
@@ -539,7 +540,9 @@ public class AES {
         bytes[index++] = (byte) (state[j][i] & 0xFF);
   }
 
-  private static char[] hexStringToByteArray(String s) {
+  private static char[] hexStringToByteArray(String input) {
+    String s = input.replaceAll("\\s","");
+
     int len = s.length();
     char[] data = new char[len / 2];
     for (int i = 0; i < len; i += 2) {
