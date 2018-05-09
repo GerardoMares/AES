@@ -231,9 +231,6 @@ public class AES {
     byte[] bytes = new byte[16];
     char[] key;
     try {
-      // BufferedReader reader = new BufferedReader(new FileReader(keyfileName));
-      // StringBuilder stringbuilder = new StringBuilder();
-      // String line = null;
 
       FileInputStream inputStreamKey = new FileInputStream(new File(keyfileName));
       inputStream.read(bytes);
@@ -241,14 +238,6 @@ public class AES {
       String s = new String(bytes);
       key = s.toCharArray();
 
-      // line = reader.readLine();
-      // if(line == null)
-      //   throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
-
-      // stringbuilder.append(line);
-      // String bytes = stringbuilder.toString();
-      //
-      // key = hexStringToByteArray(bytes);
       if(key.length != 16 && key.length != 32)
         throw new java.lang.RuntimeException("Improper key length. 128 or 256 bit key.");
 
@@ -547,17 +536,4 @@ public class AES {
       for(int j = 0; j < Nb; j++)
         bytes[index++] = (byte) (state[j][i] & 0xFF);
   }
-  //
-  // private static char[] hexStringToByteArray(String input) {
-  //   String s = input.replaceAll("\\s","");
-  //
-  //   int len = s.length();
-  //   char[] data = new char[len / 2];
-  //   for (int i = 0; i < len; i += 2) {
-  //       data[i / 2] = (char) ((Character.digit(s.charAt(i), 16) << 4)
-  //                            + Character.digit(s.charAt(i+1), 16));
-  //   }
-  //
-  //   return data;
-  // }
 }
